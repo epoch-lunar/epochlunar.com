@@ -13,7 +13,7 @@ import {
 
 // NOTE (2026-08-02): the Rust API worker was removed from this repo along with
 // all wrangler configs and CI workflows — the site is now static files on
-// Cloudflare Pages. These endpoints are external and no longer built or
+// GitHub Pages. These endpoints are external and no longer built or
 // deployed from here. If the worker is torn down in the Cloudflare dashboard,
 // the NETWORK TIME panel on the clock prototype degrades to OFFLINE /
 // "WORKER UNREACHABLE", which is handled below. Nothing else on the site
