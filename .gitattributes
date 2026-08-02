@@ -1,0 +1,39 @@
+# Line endings
+#
+# HEAD stores LF. Something on the Windows side rewrote the working tree as
+# CRLF, which made ~33 files read as fully rewritten in `git status` while
+# `git diff -w` showed no actual change. This normalises the repo to LF so
+# diffs stay honest.
+#
+# After adding this file, run once:
+#     git add --renormalize .
+#     git commit -m "Normalise line endings to LF"
+
+* text=auto eol=lf
+
+# Explicit text types (belt and braces — `text=auto` already covers these)
+*.rs        text eol=lf
+*.js        text eol=lf
+*.mjs       text eol=lf
+*.ts        text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.md        text eol=lf
+*.toml      text eol=lf
+*.json      text eol=lf
+*.yml       text eol=lf
+*.yaml      text eol=lf
+*.svg       text eol=lf
+
+# Binaries — never transform, never diff as text
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.pdf       binary
+*.wasm      binary
+*.ttf       binary
+*.otf       binary
+*.woff      binary
+*.woff2     binary

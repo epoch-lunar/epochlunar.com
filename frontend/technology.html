@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Technology — EPOCH Space Time Card</title>
+        <meta
+            name="description"
+            content="Space Time Card architecture, oscillator trade space, adoption modes, and flight heritage."
+        />
+        <meta property="og:title" content="Technology — EPOCH Space Time Card" />
+        <meta
+            property="og:description"
+            content="Space Time Card architecture, oscillator trade space, and flight heritage."
+        />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="https://epochlunar.com/technology.html" />
+        <meta property="og:image" content="https://epochlunar.com/social-card.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <link rel="canonical" href="https://epochlunar.com/technology.html" />
+        <link rel="icon" type="image/svg+xml" href="logo-o.svg" />
+        <link rel="icon" type="image/png" href="mark.png" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="ds.css" />
+    </head>
+    <body class="epoch">
+        <!-- ============ HEADER ============ -->
+        <header class="site-header">
+            <div class="wrap">
+                <a class="site-logo" href="index.html">
+                    <img src="epoch_logo.png" alt="EPOCH" width="377" height="113" />
+                </a>
+                <nav class="site-nav">
+                    <a href="index.html">Home</a>
+                    <a href="technology.html" class="is-current">Technology</a>
+                    <a href="#architecture">Architecture</a>
+                    <a href="#heritage">Heritage</a>
+                    <a href="https://epochlunar.substack.com" target="_blank" rel="noopener">Blog ↗</a>
+                    <a href="https://github.com/epoch-lunar" target="_blank" rel="noopener">GitHub ↗</a>
+                </nav>
+            </div>
+        </header>
+
+        <main id="top">
+            <!-- ============ INTRO ============ -->
+            <section class="section-sm">
+                <div class="wrap" style="display: flex; flex-direction: column; gap: 18px;">
+                    <div class="eyebrow">Technology — Space Time Card</div>
+                    <h1 class="h1">How the card is built.</h1>
+                    <p class="lede">
+                        The architecture, the oscillator trade space, and the missions that
+                        established the precedent. For the short version see the
+                        <a class="inline" href="index.html">overview</a>; for the full
+                        treatment, read the
+                        <a class="inline" href="space-time-card-whitepaper.pdf">whitepaper</a>.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ============ INSIDE THE CARD ============ -->
+            <section class="section section-rule" id="architecture">
+                <div class="wrap split">
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="eyebrow">01 — Inside the card</div>
+                        <h2 class="h2">Three layers, cleanly separated.</h2>
+                        <p class="body">
+                            The host sees only the top layer. Everything below it — servo loops,
+                            time counters, the oscillators themselves — can change without the host
+                            ever knowing. That separation is what makes the card both stable and
+                            hackable.
+                        </p>
+                        <p class="body">
+                            Also onboard: relativistic rate correction, modeling the ~56 µs/day
+                            drift caused by the Moon's gravitational potential, executed in real
+                            time on flight-class processors rather than confined to ground systems.
+                        </p>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 44px;">
+                        <!-- Layer stack -->
+                        <div style="display: flex; flex-direction: column;">
+                            <div class="stack-cap">▲ Host spacecraft — Ethernet / PTP</div>
+                            <div class="layer">
+                                <div class="layer-id">
+                                    <span class="layer-id-num">LAYER 1</span>
+                                    <span class="layer-id-name">SoC</span>
+                                </div>
+                                <div class="layer-body">
+                                    <strong>Control &amp; configuration</strong>
+                                    <span>
+                                        Abstracts internal complexity, presenting the device as a
+                                        simple PTP Leader on the network. Handles all commanding,
+                                        configuration, and telemetry. Synchronization logic lives
+                                        here — in software.
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="layer-link">AXI bridge</div>
+                            <div class="layer">
+                                <div class="layer-id">
+                                    <span class="layer-id-num">LAYER 2</span>
+                                    <span class="layer-id-name">FPGA</span>
+                                </div>
+                                <div class="layer-body">
+                                    <strong>Servo loop &amp; time counters</strong>
+                                    <span>
+                                        The heavy lifter. High-precision time registers, hardware
+                                        timestamping, and real-time synchronization. Timing
+                                        algorithms live here — upgradeable in flight, no physical
+                                        rework.
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="layer-link">1 PPS · discipline</div>
+                            <div class="layer">
+                                <div class="layer-id">
+                                    <span class="layer-id-num">LAYER 3</span>
+                                    <span class="layer-id-name">Oscillators</span>
+                                </div>
+                                <div class="layer-body">
+                                    <strong>Multi-oscillator ensemble — swappable daughter board</strong>
+                                    <span>
+                                        Chip-scale atomic clocks for long-term stability, crystal
+                                        oscillators to suppress short-term phase noise. Swap
+                                        technologies — OCXO or CSAC, single source or ensemble —
+                                        with the same base card.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Trade space -->
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <span class="instrument-label">Performance &amp; cost — core oscillator class</span>
+                            <div class="table-wrap">
+                                <div class="dtable">
+                                    <div class="drow head">
+                                        <span>Oscillator class</span>
+                                        <span>Stability (τ = 1 s)</span>
+                                        <span>Mass</span>
+                                        <span>Power</span>
+                                        <span>Est. recurring cost</span>
+                                    </div>
+                                    <div class="drow hi">
+                                        <span>Space Time Card (CSAC)</span>
+                                        <span>3×10⁻¹⁰</span>
+                                        <span>35 g</span>
+                                        <span>0.12 W</span>
+                                        <span>&lt;$10,000</span>
+                                    </div>
+                                    <div class="drow">
+                                        <span>Rubidium standard (mRO-50)</span>
+                                        <span>≤6×10⁻¹¹</span>
+                                        <span>80 g</span>
+                                        <span>0.5 W</span>
+                                        <span>$15,000–$30,000</span>
+                                    </div>
+                                    <div class="drow">
+                                        <span>Deep Space Atomic Clock (Hg+)</span>
+                                        <span>2×10⁻¹³ (τ = 100 s)</span>
+                                        <span>19 kg</span>
+                                        <span>56 W</span>
+                                        <span>&gt;$1,000,000</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="caption">
+                                Estimated from manufacturer datasheets. Full trade space in the
+                                whitepaper, Tables 2–3.
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ FLIGHT HERITAGE ============ -->
+            <section class="section section-rule section-fill" id="heritage">
+                <div class="wrap" style="display: flex; flex-direction: column; gap: 40px;">
+                    <div style="display: flex; flex-direction: column; gap: 16px; max-width: 860px;">
+                        <div class="eyebrow">02 — Flight heritage</div>
+                        <h2 class="h2">The physics is settled. The precedents flew.</h2>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <!-- CAPSTONE -->
+                        <div class="case">
+                            <div class="case-id">
+                                <span class="case-meta">CASE 01 · 2022</span>
+                                <span class="case-name">CAPSTONE</span>
+                                <span class="case-sub">The permission slip</span>
+                            </div>
+                            <div class="case-body">
+                                <p>
+                                    A 12U CubeSat, ~25 kg, flying a near rectilinear halo orbit with
+                                    an onboard CSAC-class clock. Its Cislunar Autonomous Positioning
+                                    System demonstrated peer-to-peer navigation between spacecraft —
+                                    proof that autonomy fits within the size, power, and integration
+                                    constraints of small commercial missions. When a spacecraft
+                                    trusts its onboard time base, received signals become actionable
+                                    inputs rather than raw data awaiting ground correlation.
+                                </p>
+                            </div>
+                            <div class="case-stats">
+                                <span><b>12U</b> CubeSat platform</span>
+                                <span><b>~25 kg</b> spacecraft mass</span>
+                                <span><b>CSAC</b>-class timing source</span>
+                            </div>
+                        </div>
+
+                        <!-- DSAC -->
+                        <div class="case">
+                            <div class="case-id">
+                                <span class="case-meta">CASE 02 · 2019</span>
+                                <span class="case-name">Deep Space Atomic Clock</span>
+                                <span class="case-sub">The benchmark</span>
+                            </div>
+                            <div class="case-body">
+                                <p>
+                                    NASA's mercury-ion trap clock held time deviation under four
+                                    nanoseconds after more than 20 days in orbit — stability that
+                                    unlocks one-way navigation, where signal delays are measured in
+                                    situ instead of requiring a two-way ground exchange per
+                                    measurement. It defines the ceiling. At 19 kg, 56 W, and over
+                                    $1M, it also defines why that ceiling is out of reach for most
+                                    lunar missions — and what an ensemble of cheap oscillators
+                                    should aim toward.
+                                </p>
+                            </div>
+                            <div class="case-stats">
+                                <span><b>&lt;4 ns</b> deviation, 20+ days</span>
+                                <span><b>3×10⁻¹⁵</b> ADEV at 23 days</span>
+                                <span><b class="warn">56 W · 19 kg</b> flagship class</span>
+                            </div>
+                        </div>
+
+                        <!-- GPS -->
+                        <div class="case">
+                            <div class="case-id">
+                                <span class="case-meta">CASE 03 · 1973–</span>
+                                <span class="case-name">GPS</span>
+                                <span class="case-sub amber">The hero &amp; the antihero</span>
+                            </div>
+                            <div class="case-body">
+                                <p>
+                                    GPS proved space-based timing could underpin an entire economy —
+                                    and that centralized, sovereign time is a single point of
+                                    failure. Tens of billions of dollars to deploy and sustain;
+                                    authority that remained centralized even as access was
+                                    democratized. The Space Time Card inverts the assumption: time
+                                    generation moves onto the spacecraft, and resilience emerges
+                                    from redundancy and cooperation rather than a single
+                                    controlling node.
+                                </p>
+                                <p class="case-quote">
+                                    "The GPS system cannot serve as a sole source for position
+                                    location or precision timing for certain critical applications."
+                                    — Volpe Report, 2001
+                                </p>
+                            </div>
+                            <div class="case-stats">
+                                <span><b>$10B+</b> constellation cost</span>
+                                <span><b class="amber">1</b> point of failure</span>
+                                <span><b>0</b> lunar coverage today</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ CTA ============ -->
+            <section class="section section-rule">
+                <div class="wrap" style="display: grid; grid-template-columns: 1fr 400px; gap: 56px; align-items: start;" id="cta-grid">
+                    <div style="display: flex; flex-direction: column; gap: 18px;">
+                        <div class="eyebrow">03 — Contribute</div>
+                        <h2 class="h2">A new epoch starts now.</h2>
+                        <p class="body">
+                            The remaining challenge is implementation at scale — hardware
+                            characterization, ensemble algorithms, embedded lunar frame transforms,
+                            test procedures, validation data. A university team that characterizes
+                            oscillator performance in thermal vacuum produces data that benefits
+                            every future integrator.
+                        </p>
+                    </div>
+                    <div class="linkcards">
+                        <a class="linkcard" href="space-time-card-whitepaper.pdf" download style="--accent-color: var(--vfd);">
+                            <span class="linkcard-action">↓ Download the whitepaper</span>
+                            <span class="linkcard-sub">Space Time Card — Linden, Kosak 2026 (PDF)</span>
+                        </a>
+                        <a class="linkcard" href="https://github.com/epoch-lunar" target="_blank" rel="noopener" style="--accent-color: var(--tai-green);">
+                            <span class="linkcard-action">↗ github.com/epoch-lunar</span>
+                            <span class="linkcard-sub">Reference design, firmware, test procedures</span>
+                        </a>
+                        <a class="linkcard" href="mailto:philiplinden@openlunar.org" style="--accent-color: var(--tcb-magenta);">
+                            <span class="linkcard-action">↗ Contact the authors</span>
+                            <span class="linkcard-sub">philiplinden@openlunar.org · ashleykosak@openlunar.org</span>
+                        </a>
+                        <a class="linkcard" href="https://openlunar.org" target="_blank" rel="noopener" style="--accent-color: var(--amber);">
+                            <span class="linkcard-action">↗ Open Lunar Foundation</span>
+                            <span class="linkcard-sub">openlunar.org</span>
+                        </a>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <div class="wrap">
+                <span>EPOCH — Open-source lunar timekeeping</span>
+                <span>Supported by the <a href="https://openlunar.org" target="_blank" rel="noopener">Open Lunar Foundation</a></span>
+            </div>
+        </footer>
+
+        <style>
+            @media (max-width: 900px) {
+                #cta-grid {
+                    grid-template-columns: 1fr !important;
+                    gap: 36px !important;
+                }
+            }
+        </style>
+    </body>
+</html>

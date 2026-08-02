@@ -11,9 +11,13 @@ import {
   formatDelta,
 } from "./time-scales.js";
 
-// Production API — backend/wrangler.toml → epoch-worker
-// Staging API — same config, env.staging → epoch-worker-staging (workers.dev host below)
-// Local dev — `npx wrangler dev` in backend/
+// NOTE (2026-08-02): the Rust API worker was removed from this repo along with
+// all wrangler configs and CI workflows — the site is now static files on
+// Cloudflare Pages. These endpoints are external and no longer built or
+// deployed from here. If the worker is torn down in the Cloudflare dashboard,
+// the NETWORK TIME panel on the clock prototype degrades to OFFLINE /
+// "WORKER UNREACHABLE", which is handled below. Nothing else on the site
+// depends on it: index.html and technology.html make no API calls.
 const PRODUCTION_WORKER_TIME_URL =
   "https://epoch-worker.philiplinden.workers.dev/api/time";
 const STAGING_WORKER_TIME_URL =
