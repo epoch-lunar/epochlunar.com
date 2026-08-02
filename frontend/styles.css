@@ -941,6 +941,7 @@ body {
 .prototypes-btn-wrap {
     display: flex;
     justify-content: center;
+    gap: 8px;
     padding: 16px 0 4px;
     margin-top: 8px;
 }

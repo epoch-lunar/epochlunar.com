@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    version="1.1"
-   width="6.92667in"
-   height="3.95667in"
-   viewBox="0 0 2078 1187"
+   width="5056.7397"
+   height="5544.4072"
+   viewBox="0 0 52.674374 57.754245"
    id="svg2"
    sodipodi:docname="logo-mark1-crescent.svg"
    inkscape:version="1.4.3 (0d15f75, 2025-12-25)"
@@ -21,24 +21,39 @@
      pagecolor="#000000"
      bordercolor="#000000"
      borderopacity="0.25"
-     inkscape:showpageshadow="2"
+     inkscape:showpageshadow="false"
      inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
+     inkscape:pagecheckerboard="true"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="in"
      inkscape:zoom="34.7596"
-     inkscape:cx="422.57391"
-     inkscape:cy="222.16884"
+     inkscape:cx="0.46030449"
+     inkscape:cy="13.909826"
      inkscape:window-width="2560"
      inkscape:window-height="1369"
      inkscape:window-x="-8"
      inkscape:window-y="-8"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg2" />
+     inkscape:current-layer="svg2"
+     inkscape:clip-to-page="false"
+     showborder="false"
+     borderlayer="false">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="52.674374"
+       height="57.754246"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
   <path
      id="path1"
-     style="stroke:none;fill:#e9dcc5;fill-opacity:1"
-     d="M 1344.2801 665.1912 C 1342.5764 665.13091 1340.8143 665.21475 1339.0006 665.45975 C 1333.8725 666.60173 1329.3805 668.45284 1325.6705 671.06277 C 1328.7228 669.2124 1332.0441 668.15764 1335.9976 667.30911 C 1337.9376 667.20911 1339.0025 667.02911 1341.0025 667.30911 C 1345.1725 667.49911 1349.422 668.7685 1353.002 670.9285 C 1377.062 685.4285 1364.3596 721.81762 1337.9996 719.81762 C 1330.0252 719.20999 1323.5271 715.43456 1319.1763 710.08863 C 1325.2943 718.87025 1336.0897 724.49026 1347.0023 722.53979 C 1351.7923 721.67979 1357.1676 719.63718 1360.9976 716.60718 C 1382.3164 699.69468 1369.8356 666.09552 1344.2801 665.1912 z ">
+     style="fill:#e9dcc5;fill-opacity:1;stroke:none"
+     d="m 25.1038,0.01876044 c -1.7037,-0.0603 -3.4658,0.0236 -5.2795,0.26855 C 14.6962,1.4292904 10.2042,3.2804004 6.4942,5.8903304 c 3.0523,-1.85037 6.3736,-2.90513 10.3271,-3.75366 1.94,-0.1 3.0049,-0.28 5.0049,0 4.17,0.19 8.4195,1.45939 11.9995,3.61939 C 57.8857,20.256061 45.1833,56.645181 18.8233,54.645181 10.8489,54.037551 4.3508,50.262121 0,44.916191 c 6.118,8.78162 16.9134,14.40163 27.826,12.45116 4.79,-0.86 10.1653,-2.90261 13.9953,-5.93261 21.3188,-16.9125 8.838,-50.51166056 -16.7175,-51.41598056 z"
+     inkscape:export-filename="logo-mark1-crescent.svg"
+     inkscape:export-xdpi="2597.2102"
+     inkscape:export-ydpi="2597.2102">
     <title
        id="title1">moon</title>
   </path>

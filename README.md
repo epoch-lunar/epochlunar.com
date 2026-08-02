@@ -1,8 +1,23 @@
-# Epoch Clock — Time Scale Engine
+# epochlunar.com — site and time scale engine
 
-This repository implements a browser-based clock that displays multiple scientific time scales (TAI, UTC, TCG, TCB, GPS, Unix, and experimental TCL) derived from a single canonical timeline.
+This repository holds **epochlunar.com**: a static marketing site for the Space Time Card, plus the browser-based multi-scale clock that the project started as.
 
-The clock is intended as an educational visualization of how modern timekeeping systems relate to one another, including relativistic coordinate time scales used in astrodynamics.
+## Site structure
+
+| Page | Purpose |
+|------|---------|
+| `frontend/index.html` | Landing page — what the Space Time Card is, spec numbers, adoption modes, whitepaper download, Substack signup |
+| `frontend/technology.html` | Architecture, oscillator trade space, flight heritage |
+| `frontend/ds.css` | EPOCH design system (VFD screen mode), used by both pages above |
+| `frontend/prototypes/multi-timescale-clock.html` | The live clock — was the homepage through 2026-08, now a prototype |
+| `frontend/prototypes/` | Design spikes for VFD / CRT / dash vocabulary |
+| `frontend/styles.css` | Instrument-housing styles; used by the prototypes only |
+
+The rest of this README documents the **time scale engine** (`frontend/script.js` + `frontend/time-scales.js`), which powers the clock prototype. It runs entirely client-side.
+
+## Time scale engine
+
+The clock displays multiple scientific time scales (TAI, UTC, TCG, TCB, GPS, Unix, and experimental TCL) derived from a single canonical timeline. It is an educational visualization of how modern timekeeping systems relate to one another, including the relativistic coordinate time scales used in astrodynamics.
 
 The implementation runs entirely in the browser and derives all scales from a continuous estimate of **International Atomic Time (TAI)**.
 
@@ -256,31 +271,43 @@ Most people interact only with UTC, but spacecraft navigation, relativistic astr
 
 This clock demonstrates those relationships in real time.
 
-## Build
+## Running locally
 
-The **API** is a Cloudflare Worker written in Rust (`worker-build`) in `backend/`. The **marketing site** is static files in `frontend/`, served by a separate Worker + Assets worker (`wrangler.toml` at repo root).
-
-To run the API locally:
+The site is static files. No build step, no toolchain.
 
 ```bash
-cd backend
-npx wrangler dev
+cd frontend
+python -m http.server 8080
 ```
 
-This serves the Worker at `http://localhost:8787`. When you open the frontend from **localhost** (via a small static server), `frontend/script.js` uses `http://localhost:8787/api/time` automatically.
+Then open `http://localhost:8080`. Serve over HTTP rather than opening `file://` URLs — `script.js` is an ES module and the clock prototype won't load otherwise.
 
-To test the full site with the local API:
+## Deploying
 
-1. Run `npx wrangler dev` in `backend/` (keep it running).
-2. Serve `frontend/` over HTTP (e.g. `cd frontend && python -m http.server 8080`).
-3. Open `http://localhost:8080` in a browser.
+GitHub Pages, published by `.github/workflows/deploy-pages.yml` on every push to `main` that touches `frontend/`.
 
-**First time only** — you may need:
+The site lives in a subdirectory, and Pages' built-in "deploy from branch" only supports the repo root or `/docs` — hence the workflow, which uploads `frontend/` as the Pages artifact.
 
-```bash
-rustup target add wasm32-unknown-unknown
-cargo install worker-build
-cd backend && npm ci   # uses committed package-lock.json (same as GitHub Actions)
-```
+**Repo settings → Pages → Source must be set to "GitHub Actions".** Without it the workflow runs and then fails at the deploy step.
 
-Use `npm install` only when you intentionally change backend Node dependencies and need to refresh the lockfile.
+### Custom domain
+
+`frontend/CNAME` claims `epochlunar.com`. DNS must point at GitHub:
+
+| Type | Name | Value |
+|------|------|-------|
+| A | `@` | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+| CNAME | `www` | `epoch-lunar.github.io` |
+
+If DNS stays on Cloudflare, set these records to **DNS only** (grey cloud, not proxied). GitHub cannot complete its ACME challenge through Cloudflare's proxy, so "Enforce HTTPS" will stay greyed out until the cert issues.
+
+`frontend/.nojekyll` disables Jekyll processing. Without it Pages silently drops any path beginning with an underscore.
+
+### History
+
+Until 2026-08 the site was served by a Cloudflare Worker with assets (root `wrangler.toml`), alongside a Rust API Worker in `backend/` that exposed `/api/time`, plus GitHub Actions for both. All of that was removed: the landing and technology pages make no API calls, and static hosting needs none of it.
+
+The clock prototype still calls the old `epoch-worker` endpoint for its NETWORK TIME panel. That worker is no longer built or deployed from this repo; if it is torn down, the panel degrades to OFFLINE and nothing else is affected.

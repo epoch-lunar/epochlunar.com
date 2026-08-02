@@ -2,21 +2,11 @@
 .claude/
 CLAUDE.md
 
-# Backend (Rust + Node)
-backend/node_modules/
-backend/target/
-backend/.wrangler/
-backend/build/
-
 # Misc
 *.local
-
-# Root Wrangler (static assets worker)
-.wrangler/
-.dev.vars*
-!.dev.vars.example
 .env*
 !.env.example
 
-# Cargo
-.cargo/
+# OS
+.DS_Store
+Thumbs.db

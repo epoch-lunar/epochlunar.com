@@ -6,205 +6,272 @@
         <title>EPOCH — Open-Source Lunar Timekeeping</title>
         <meta
             name="description"
-            content="Precision timing infrastructure for lunar and cislunar missions."
+            content="Precision timing infrastructure for lunar and cislunar missions. The Space Time Card is a plug-and-play time appliance for spacecraft — open hardware, open firmware."
         />
-        <meta
-            property="og:title"
-            content="EPOCH — Open-Source Lunar Timekeeping"
-        />
+        <meta property="og:title" content="EPOCH — Open-Source Lunar Timekeeping" />
         <meta
             property="og:description"
-            content="Precision timing infrastructure for lunar and cislunar missions."
+            content="Precision timing infrastructure for lunar and cislunar missions. Open hardware, open firmware."
         />
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://epochlunar.com/" />
+        <meta property="og:image" content="https://epochlunar.com/social-card.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <link rel="canonical" href="https://epochlunar.com/" />
         <link rel="icon" type="image/svg+xml" href="logo-o.svg" />
         <link rel="icon" type="image/png" href="mark.png" />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <link
-            href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@300;400;700&family=Space+Mono:wght@400;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap"
             rel="stylesheet"
         />
-
-        <link rel="stylesheet" href="styles.css" />
+        <link rel="stylesheet" href="ds.css" />
     </head>
-    <body>
-        <div class="clock-housing">
-            <div class="clock-inner">
-                <div class="brand">
-                    <div class="brand-name" aria-label="EPOCH">
-                        <span class="brand-ch" aria-hidden="true">E</span>
-                        <span class="brand-ch" aria-hidden="true">P</span>
-                        <img
-                            class="brand-o-img"
-                            src="logo-o.svg"
-                            alt=""
-                            width="30"
-                            height="37"
-                            decoding="async"
-                            aria-hidden="true"
-                        />
-                        <span class="brand-ch" aria-hidden="true">C</span>
-                        <span class="brand-ch" aria-hidden="true">H</span>
-                    </div>
-                    <span class="brand-tag">Open-Source Lunar Timekeeping</span>
-                </div>
+    <body class="epoch">
+        <!-- ============ HEADER ============ -->
+        <header class="site-header">
+            <div class="wrap">
+                <a class="site-logo" href="#top">
+                    <img src="epoch_logo.png" alt="EPOCH" width="377" height="113" />
+                </a>
+                <nav class="site-nav">
+                    <a href="index.html" class="is-current">Home</a>
+                    <a href="technology.html">Technology</a>
+                    <a href="https://epochlunar.substack.com" target="_blank" rel="noopener">Blog ↗</a>
+                    <a href="https://github.com/epoch-lunar" target="_blank" rel="noopener">GitHub ↗</a>
+                </nav>
+            </div>
+        </header>
 
-                <div class="divider"></div>
-                <div class="panel-label">REALIZED ATOMIC TIME</div>
-                <div class="scale-selector" id="atomic-selector">
-                    <div class="scale-btn-row">
-                        <div class="scale-btn" data-i="0">UTC</div>
-                        <div class="scale-btn" data-i="1">TAI</div>
-                        <div class="scale-btn" data-i="2">GPS</div>
-                        <div class="scale-btn" data-i="3">UNIX</div>
+        <main id="top">
+            <!-- ============ HERO ============ -->
+            <section class="section">
+                <div class="wrap">
+                    <div class="hero-copy">
+                        <div class="eyebrow">Open-source lunar timekeeping</div>
+                        <h1 class="h1">Precision time, carried onboard.</h1>
+                        <p class="lede">
+                            There is no GPS at the Moon. The Space Time Card is a plug-and-play
+                            time appliance for spacecraft: an ensemble of precision oscillators,
+                            cross-disciplined by consensus, presented to the host as a standard
+                            PTP Leader over Ethernet. Trusted time without waiting for a
+                            constellation.
+                        </p>
+                        <div class="btn-row">
+                            <a class="btn btn-primary" href="space-time-card-whitepaper.pdf" download>
+                                ↓ Download the whitepaper
+                            </a>
+                            <a class="btn" href="https://epochlunar.substack.com" target="_blank" rel="noopener">
+                                Read the blog ↗
+                            </a>
+                        </div>
                     </div>
                 </div>
-                <div class="lcd">
-                    <div class="clock-row">
-                        <div class="clock-face">
-                            <div class="time-line">
-                                <span
-                                    class="time-ghost"
-                                    id="ghost-atomic"
-                                ></span>
-                                <span class="time-val" id="tval-atomic"></span>
+            </section>
+
+            <!-- ============ SPEC STRIP ============ -->
+            <section class="section-rule section-fill" style="border-bottom: 1px solid var(--vfd-hairline);">
+                <div class="wrap spec-strip">
+                    <div class="spec">
+                        <span class="spec-val">&lt;50 ns</span>
+                        <span class="spec-label">Time deviation over 48 h autonomous holdover</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-val">+56 µs</span>
+                        <span class="spec-label">Per day a lunar clock outruns one on Earth</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-val">0.12 W</span>
+                        <span class="spec-label">Power draw of the SA.65 chip-scale atomic clock</span>
+                    </div>
+                    <div class="spec">
+                        <span class="spec-val">&lt;$10k</span>
+                        <span class="spec-label">Target recurring cost per card</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ HOW IT WORKS ============ -->
+            <section class="section">
+                <div class="wrap split">
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="eyebrow">01 — The instrument</div>
+                        <h2 class="h2">One cable. One protocol. The host stays ignorant.</h2>
+                    </div>
+                    <div class="card-grid card-grid-2">
+                        <div class="card">
+                            <span class="card-tag">PTP Leader over Ethernet</span>
+                            <p>
+                                The card joins the spacecraft network as a Precision Time Protocol
+                                Leader. Any PTP Follower consumes hardware-timestamped packets —
+                                the same stack that synchronizes datacenters to sub-microsecond
+                                precision. No PCIe, no custom drivers.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="card-tag">Oscillator ensemble</span>
+                            <p>
+                                A single chip-scale atomic clock drifts by hundreds of microseconds
+                                within days. Combining oscillators with Allan-deviation-based
+                                weighting suppresses short-term phase noise and constrains
+                                long-term drift. If one fails, the ensemble excludes it without
+                                losing time continuity.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="card-tag">Relativity onboard</span>
+                            <p>
+                                The card models the ~56 µs/day rate offset caused by the Moon's
+                                gravitational potential in real time, on flight-class processors —
+                                not confined to ground systems.
+                            </p>
+                        </div>
+                        <div class="card">
+                            <span class="card-tag">Upgradeable in flight</span>
+                            <p>
+                                Synchronization logic lives in software on the SoC; timing
+                                algorithms live in the FPGA. A mission that launches with basic PTP
+                                disciplining can adopt ensemble averaging years later — just an
+                                upload. Oscillators sit on a swappable daughter board.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ ADOPT ============ -->
+            <section class="section section-rule section-fill">
+                <div class="wrap">
+                    <div style="display: flex; flex-direction: column; gap: 16px; max-width: 860px;">
+                        <div class="eyebrow">02 — Adoption</div>
+                        <h2 class="h2">Buy it, blend it, or brew it yourself.</h2>
+                        <p class="body">
+                            Open interfaces mean teams choose how they adopt — trading dollars for
+                            effort at whatever rate fits their budget and schedule. The interface
+                            stays stable in every case, so systems built independently remain
+                            compatible.
+                        </p>
+                    </div>
+                    <div class="card-grid card-grid-3" style="margin-top: 36px;">
+                        <div class="card">
+                            <span class="card-num">MODE 01</span>
+                            <h3 class="card-title-accent">Buy</h3>
+                            <p>Integrate a complete Space Time Card module and move on — for tight schedules and proven requirements.</p>
+                            <span class="card-foot">For: missions with tight schedules</span>
+                        </div>
+                        <div class="card">
+                            <span class="card-num">MODE 02</span>
+                            <h3 class="card-title-accent">Blend</h3>
+                            <p>Swap a different oscillator onto the daughter board, or run modified firmware on the same hardware — new configurations without fragmenting the interfaces.</p>
+                            <span class="card-foot">For: teams with specific requirements</span>
+                        </div>
+                        <div class="card">
+                            <span class="card-num">MODE 03</span>
+                            <h3 class="card-title-accent">Brew</h3>
+                            <p>Start from the reference design as a kit, or fork the repo and experiment from scratch — a hackable platform as well as a usable module.</p>
+                            <span class="card-foot">For: researchers &amp; university teams</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 28px;">
+                        <a class="inline" href="technology.html" style="font-family: var(--font-ui); font-size: 14px; letter-spacing: 0.08em;">
+                            Architecture, oscillator trade space, and flight heritage →
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ============ CONTRIBUTE / SUBSCRIBE ============ -->
+            <section class="section section-rule">
+                <div class="wrap" style="display: grid; grid-template-columns: 1fr 400px; gap: 56px; align-items: start;" id="contribute-grid">
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div class="eyebrow">03 — Where it stands</div>
+                        <h2 class="h2">A new epoch starts now.</h2>
+                        <p class="body">
+                            The underlying physics and synchronization techniques are well
+                            understood. The remaining challenge is implementation at scale —
+                            hardware characterization, ensemble algorithms, embedded lunar frame
+                            transforms, test procedures, validation data. A university team that
+                            characterizes oscillator performance in thermal vacuum produces data
+                            that benefits every future integrator.
+                        </p>
+                        <p class="body">
+                            Space Time Card V1 was designed, built, and tested by undergraduate
+                            students at Rochester Institute of Technology. Flight-representative
+                            prototypes are in work for 2026; thermal vacuum and vibration testing
+                            begins 2027. Epoch is developed under the
+                            <a class="inline" href="https://openlunar.org" target="_blank" rel="noopener">Open Lunar Foundation</a>.
+                        </p>
+
+                        <div class="subscribe" style="margin-top: 4px;">
+                            <span class="instrument-label">Follow the build</span>
+                            <div class="subscribe-embed">
+                                <iframe
+                                    src="https://epochlunar.substack.com/embed"
+                                    height="150"
+                                    scrolling="no"
+                                    title="Subscribe to the EPOCH newsletter"
+                                    loading="lazy"
+                                ></iframe>
                             </div>
-                            <div class="scale-name" id="sname-atomic">UTC</div>
-                            <div
-                                class="scale-citation"
-                                id="scale-citation-atomic"
-                            ></div>
                         </div>
                     </div>
-                </div>
 
-                <div class="divider"></div>
-                <div class="panel-label">RELATIVISTIC COORDINATE TIME</div>
-                <div class="scale-selector" id="coord-selector">
-                    <div class="scale-btn-row">
-                        <div class="scale-btn" data-i="0">TCB</div>
-                        <div class="scale-btn" data-i="1">TCG</div>
-                        <div class="scale-btn on" data-i="2">TCL</div>
+                    <div class="linkcards">
+                        <a class="linkcard" href="space-time-card-whitepaper.pdf" download style="--accent-color: var(--vfd);">
+                            <span class="linkcard-action">↓ Download the whitepaper</span>
+                            <span class="linkcard-sub">Space Time Card — Linden, Kosak 2026 (PDF)</span>
+                        </a>
+                        <a class="linkcard" href="technology.html" style="--accent-color: var(--vfd);">
+                            <span class="linkcard-action">→ Technology</span>
+                            <span class="linkcard-sub">Architecture, trade space, flight heritage</span>
+                        </a>
+                        <a class="linkcard" href="https://github.com/epoch-lunar" target="_blank" rel="noopener" style="--accent-color: var(--tai-green);">
+                            <span class="linkcard-action">↗ github.com/epoch-lunar</span>
+                            <span class="linkcard-sub">Reference design, firmware, test procedures</span>
+                        </a>
+                        <a class="linkcard" href="mailto:philiplinden@openlunar.org" style="--accent-color: var(--tcb-magenta);">
+                            <span class="linkcard-action">↗ Contact the authors</span>
+                            <span class="linkcard-sub">philiplinden@openlunar.org · ashleykosak@openlunar.org</span>
+                        </a>
+                        <a class="linkcard" href="https://openlunar.org" target="_blank" rel="noopener" style="--accent-color: var(--amber);">
+                            <span class="linkcard-action">↗ Open Lunar Foundation</span>
+                            <span class="linkcard-sub">openlunar.org</span>
+                        </a>
                     </div>
                 </div>
-                <div class="lcd">
-                    <div class="clock-row">
-                        <div class="clock-face">
-                            <div class="time-line">
-                                <span
-                                    class="time-ghost"
-                                    id="ghost-coord"
-                                ></span>
-                                <span class="time-val" id="tval-coord"></span>
-                            </div>
-                            <div class="scale-name" id="sname-coord">TCL</div>
-                            <div
-                                class="scale-citation"
-                                id="scale-citation-coord"
-                            ></div>
-                        </div>
-                    </div>
-                </div>
+            </section>
+        </main>
 
-                <div class="divider"></div>
-                <div class="panel-label">TIME DIFFERENCE</div>
-                <div class="lcd delta-display">
-                    <div class="delta-val" id="delta-val">+0.000000 s</div>
-                </div>
-
-                <div class="divider"></div>
+        <!-- ============ FOOTER ============ -->
+        <footer class="site-footer">
+            <div class="wrap">
+                <span>EPOCH — Open-source lunar timekeeping</span>
+                <span>
+                    <a href="prototypes/multi-timescale-clock.html">Multi-timescale clock</a> ·
+                    <a href="prototypes/">Design prototypes</a> ·
+                    Supported by the
+                    <a href="https://openlunar.org" target="_blank" rel="noopener">Open Lunar Foundation</a>
+                </span>
             </div>
-        </div>
-        <div class="clock-housing">
-            <div class="clock-inner">
-                <div class="panel-label">NETWORK TIME</div>
-                <div class="source-rows">
-                    <div class="source-row">
-                        <div class="indicator" id="ind-worker">
-                            EPOCH WORKER
-                        </div>
-                        <span class="source-offset" id="off-worker">---</span>
-                        <span class="source-km" id="off-worker-km"></span>
-                        <div class="status-lights">
-                            <span class="status-light" id="sl-worker"
-                                >OFFLINE</span
-                            >
-                        </div>
-                    </div>
-                    <div class="worker-meta-row">
-                        <span class="worker-meta" id="worker-meta"
-                            >AWAITING SYNC</span
-                        >
-                        <button class="holdover-btn" id="holdover-btn">
-                            SIMULATE HOLDOVER
-                        </button>
-                    </div>
-                    <div class="sparkline-container">
-                        <svg
-                            id="sparkline"
-                            viewBox="0 0 300 48"
-                            preserveAspectRatio="none"
-                            width="100%"
-                            height="48"
-                        ></svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="clock-housing">
-            <div class="clock-inner">
-                <div class="substack-embed">
-                    <span class="rivet"></span>
-                    <span class="rivet"></span>
-                    <span class="rivet"></span>
-                    <span class="rivet"></span>
-                    <iframe
-                        src="https://epochlunar.substack.com/embed"
-                        height="150"
-                        scrolling="no"
-                    ></iframe>
-                </div>
+        </footer>
 
-                <div class="dl-sec">
-                    <a
-                        class="dl-a dl-paper"
-                        href="https://www.openlunar.org/publications/space-time-card"
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        <span class="dl-a-action">↗ Read White Paper</span>
-                        <span class="dl-a-sub"
-                            >Space Time Card — Linden, Kosak 2026</span
-                        >
-                    </a>
-                    <a
-                        class="dl-a dl-openlunar"
-                        href="https://openlunar.org"
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        <span class="dl-a-action">↗ Open Lunar Foundation</span>
-                        <span class="dl-a-sub">openlunar.org</span>
-                    </a>
-                </div>
-
-                <div class="badge">
-                    <a
-                        href="https://github.com/epoch-lunar"
-                        target="_blank"
-                        rel="noopener"
-                        >github.com/epoch-lunar</a
-                    >
-                </div>
-
-                <div class="prototypes-btn-wrap">
-                    <a class="prototypes-btn" href="prototypes/">Design prototypes</a>
-                </div>
-            </div>
-        </div>
-
-        <script type="module" src="script.js"></script>
+        <style>
+            .hero-copy {
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                /* No max-width here. `ch` resolves against this div's 16px
+                   font-size, so 62ch was ~500px — it strangled the 52px h1
+                   into three lines. The .lede sets its own 56ch measure. */
+            }
+            @media (max-width: 900px) {
+                #contribute-grid {
+                    grid-template-columns: 1fr !important;
+                    gap: 36px !important;
+                }
+            }
+        </style>
     </body>
 </html>

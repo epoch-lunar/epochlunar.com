@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EPOCH dash — Lunar sync (light-delay ping)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <script type="module" src="./lib/celestial-emoji.js"></script>
+  <style>
+    /*
+     * dash-lunar-sync.html — iter 0 of the dash instrument cluster prototypes.
+     *
+     * Tracks POSITION UNCERTAINTY for a lunar reference clock. Drift uses the
+     * fractional-frequency-stability model: Δt(τ) ≈ σ · τ, where σ is the
+     * picked oscillator's stability (true short-term Allan deviation for the
+     * lab/atomic options, long-term observed offset for the everyday clocks).
+     * Pick an oscillator and a demo time multiplier to compress realistic
+     * stability into a watchable timeline. PING MOON simulates a real query:
+     * the request takes one light-time (~1.282 s) to reach the Moon, the
+     * answer takes another to come back — so even at the instant your sync
+     * completes, your knowledge is already 1.282 s old. That's the irreducible
+     * light-delay floor every sync inherits.
+     *
+     * Tokens: docs/brand.md § VFD RENDERING SPECIFICATION (panel border, bloom,
+     * VFD teal). All visible text uses clamp() so the readouts scale with the
+     * viewport.
+     */
+    @font-face {
+      font-family: "DSEG7";
+      src: url("https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2")
+        format("woff2");
+      font-weight: bold;
+      font-style: normal;
+    }
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111113;
+      --cream: #e9dcc5;
+      --dim: #555558;
+
+      --vfd: #00e5cc;
+      --vfd-ghost: rgba(0, 229, 204, 0.10);
+      --vfd-glow-inner: rgba(0, 229, 204, 0.40);
+      --vfd-glow-outer: rgba(0, 229, 204, 0.15);
+      --vfd-border: rgba(0, 229, 204, 0.20);
+      --vfd-grid: rgba(0, 229, 204, 0.08);
+
+      --amber: #ffaa00;
+      --amber-glow-inner: rgba(255, 170, 0, 0.40);
+      --amber-glow-outer: rgba(255, 170, 0, 0.15);
+
+      --warning: #ff2255;
+    }
+    * { box-sizing: border-box; }
+    html {
+      /* Fluid baseline: 13 px on a phone, scales smoothly to ~20 px on a 1920 px desktop */
+      font-size: clamp(13px, 0.55vw + 11px, 20px);
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--cream);
+      font-family: "Share Tech Mono", monospace;
+      padding: clamp(1rem, 2vw, 2.5rem);
+    }
+    .page-h {
+      font-size: 0.85rem;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--vfd);
+      margin: 0 0 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    /* ───────────────── Tooltip system ─────────────────
+     * Any element with [data-tooltip] gets a hover popover. Add .tip-underline
+     * to text triggers for a subtle dotted-underline cue; buttons / icons
+     * communicate hoverability on their own.
+     */
+    [data-tooltip] {
+      position: relative;
+    }
+    [data-tooltip]::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 0.55rem);
+      left: 50%;
+      transform: translateX(-50%);
+      width: max-content;
+      max-width: min(28rem, 82vw);
+      padding: 0.6rem 0.8rem;
+      background: var(--surface);
+      border: 1px solid var(--vfd-border);
+      border-radius: 2px;
+      color: var(--cream);
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.75rem;
+      line-height: 1.55;
+      letter-spacing: 0.02em;
+      text-transform: none;
+      box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.5),
+        0 6px 22px rgba(0, 0, 0, 0.65);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s 0.05s;
+      z-index: 20;
+      white-space: pre-line;
+      text-align: left;
+    }
+    [data-tooltip]:hover::after,
+    [data-tooltip]:focus-visible::after {
+      opacity: 1;
+    }
+    .tip-underline {
+      border-bottom: 1px dotted rgba(0, 229, 204, 0.5);
+      cursor: help;
+    }
+    .tip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.2em;
+      height: 1.2em;
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.85em;
+      line-height: 1;
+      color: var(--vfd);
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      opacity: 0.55;
+      cursor: help;
+      vertical-align: middle;
+      transition: opacity 0.15s;
+      user-select: none;
+    }
+    .tip-icon:hover { opacity: 1; }
+
+    /* Panel zone — see brand.md § Panel Zones */
+    .panel {
+      max-width: min(56rem, 92vw);
+      border: 1px solid var(--vfd-border);
+      border-radius: 3px;
+      background-color: var(--bg);
+      padding: 1.1rem 1.25rem 1.25rem;
+    }
+    .panel__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1rem;
+    }
+    .panel__label {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--vfd);
+    }
+    .panel__state {
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--vfd);
+      transition: color 0.2s;
+    }
+    .panel__state.is-pinging {
+      color: var(--amber);
+      animation: blink 0.6s steps(2, end) infinite;
+    }
+    .panel__state.is-synced {
+      color: var(--vfd);
+      text-shadow: 0 0 8px var(--vfd);
+    }
+    @keyframes blink {
+      to { opacity: 0.35; }
+    }
+
+    /* Earth — Moon light-delay strip */
+    .range {
+      padding: 0.5rem 0.5rem 0.75rem;
+    }
+    .range__label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      margin-bottom: 0.5rem;
+    }
+    .range__strip {
+      position: relative;
+      height: 1.5rem;
+    }
+    .range__line {
+      position: absolute;
+      top: 50%;
+      left: 1rem;
+      right: 1rem;
+      height: 1px;
+      transform: translateY(-50%);
+      background-image: linear-gradient(
+        to right,
+        rgba(0, 229, 204, 0.2) 0,
+        rgba(0, 229, 204, 0.2) 3px,
+        transparent 3px,
+        transparent 6px
+      );
+    }
+    .range__body {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.25rem;
+      line-height: 1;
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji",
+        "Twemoji Mozilla", sans-serif;
+      user-select: none;
+      transition: filter 0.15s;
+      filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.7));
+    }
+    .range__body--earth {
+      left: 0.15rem;
+    }
+    .range__body--earth.is-hit {
+      filter:
+        drop-shadow(0 0 4px var(--vfd))
+        drop-shadow(0 0 14px var(--vfd-glow-inner));
+    }
+    .range__body--moon {
+      right: 0.15rem;
+    }
+    .range__pulse {
+      position: absolute;
+      top: 50%;
+      left: 1rem;
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--amber);
+      box-shadow:
+        0 0 4px var(--amber),
+        0 0 12px var(--amber-glow-inner),
+        0 0 24px var(--amber-glow-outer);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .range__pulse.is-active {
+      opacity: 1;
+    }
+
+    .readouts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-top: 0.75rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(0, 229, 204, 0.08);
+    }
+    .readout {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .readout__label {
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      align-self: flex-start;
+    }
+    .readout__val {
+      font-family: "DSEG7", "Share Tech Mono", monospace;
+      font-weight: bold;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      color: var(--vfd);
+      text-shadow:
+        0 0 4px var(--vfd),
+        0 0 12px var(--vfd-glow-inner),
+        0 0 28px var(--vfd-glow-outer);
+      letter-spacing: 0.04em;
+      line-height: 1.05;
+    }
+    .readout__val.is-warn {
+      color: var(--amber);
+      text-shadow:
+        0 0 4px var(--amber),
+        0 0 12px var(--amber-glow-inner),
+        0 0 28px var(--amber-glow-outer);
+    }
+    .readout__unit {
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.8rem;
+      color: rgba(0, 229, 204, 0.6);
+      margin-left: 0.3rem;
+      text-shadow: none;
+    }
+    .readout__val.is-warn + .readout__unit {
+      color: rgba(255, 170, 0, 0.6);
+    }
+    .readout__caption {
+      font-size: 0.75rem;
+      color: var(--dim);
+      letter-spacing: 0.05em;
+      margin-top: 0.15rem;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(0, 229, 204, 0.08);
+      flex-wrap: wrap;
+    }
+    .ping-btn {
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.18em;
+      padding: 0.6rem 1rem;
+      background: #0a1416;
+      border: 1px solid var(--vfd-border);
+      border-radius: 2px;
+      color: var(--vfd);
+      cursor: pointer;
+      text-transform: uppercase;
+      white-space: nowrap;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.15s, color 0.15s, background 0.15s, text-shadow 0.15s;
+    }
+    .ping-btn:hover:not(:disabled) {
+      border-color: var(--vfd);
+      color: var(--vfd);
+      text-shadow: 0 0 8px var(--vfd);
+      background: #0a2024;
+    }
+    .ping-btn:disabled {
+      cursor: not-allowed;
+      color: rgba(255, 170, 0, 0.75);
+      border-color: rgba(255, 170, 0, 0.4);
+      background: #1a1400;
+      text-shadow: 0 0 6px var(--amber);
+    }
+
+    /* Design-review controls — removed when this drops into the assembled panel */
+    .controls {
+      max-width: min(56rem, 92vw);
+      margin-top: 1.25rem;
+      padding: 0.85rem 1rem 1rem;
+      border: 1px dashed rgba(233, 220, 196, 0.15);
+      border-radius: 3px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.85rem 1.25rem;
+      align-items: center;
+    }
+    .controls__title {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(233, 220, 196, 0.5);
+      margin-bottom: 0.15rem;
+    }
+    .controls__title .tip-icon { color: rgba(233, 220, 196, 0.7); }
+    .controls label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(233, 220, 196, 0.7);
+      min-width: 0;
+    }
+    .controls label > span.label-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .controls input[type="range"] {
+      width: 100%;
+      max-width: 24rem;
+      accent-color: var(--vfd);
+    }
+    .controls select {
+      width: 100%;
+      max-width: 24rem;
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.85rem;
+      padding: 0.4rem 0.55rem;
+      background: #0a1416;
+      color: var(--vfd);
+      border: 1px solid var(--vfd-border);
+      border-radius: 2px;
+      letter-spacing: 0.05em;
+      text-transform: none;
+    }
+    .controls select:focus {
+      outline: none;
+      border-color: var(--vfd);
+      box-shadow: 0 0 6px var(--vfd-glow-inner);
+    }
+    .controls__readout {
+      font-family: "Share Tech Mono", monospace;
+      font-size: 0.8rem;
+      color: var(--cream);
+      white-space: nowrap;
+      min-width: 9rem;
+      text-align: right;
+      align-self: end;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="page-h">
+    Prototype — dash / lunar sync (light-delay ping)
+    <span class="tip-icon" tabindex="0" data-tooltip="Iter 0 of the dash instrument cluster (see dash/TODO.md). Tracks position uncertainty for a lunar reference clock, growing since the last successful sync. PING EARTH simulates a real query from the Moon — request takes 1.282 s of light-time to reach Earth, answer takes 1.282 s to return. Even at the instant your sync completes, your knowledge is already 1.282 s old.">i</span>
+  </h1>
+
+  <div class="panel">
+    <div class="panel__header">
+      <div class="panel__label">Lunar sync</div>
+      <div class="panel__state" id="state-label">LOCKED</div>
+    </div>
+
+    <div class="range">
+      <div class="range__label">
+        <span class="tip-underline" tabindex="0" data-tooltip="Earth–Moon mean range 384,400 km. c = 299,792.458 km/s, so one-way light time is ~1.282 s and round-trip is ~2.564 s. Every photon carrying a sync answer is at least one one-way light-time stale by the time it arrives.">Earth &mdash; Moon &middot; 384,400 km &middot; 1.282 s one-way</span>
+      </div>
+      <div class="range__strip">
+        <div class="range__line"></div>
+        <spinning-earth class="range__body range__body--earth" id="earth-body" title="Earth">&#x1F30D;</spinning-earth>
+        <lunar-phase class="range__body range__body--moon" id="moon-body" title="Moon">&#x1F315;</lunar-phase>
+        <div class="range__pulse" id="pulse"></div>
+      </div>
+    </div>
+
+    <div class="readouts">
+      <div class="readout">
+        <div class="readout__label tip-underline" tabindex="0" data-tooltip="Wall-clock time elapsed since the last successful sync arrived. Reset by every completed PING. Ping completion does NOT zero this — your fresh sync is already one-way light-time (~1.282 s) old at the moment of receipt.">Time since last sync</div>
+        <div>
+          <span class="readout__val" id="age-val">00:00.00</span>
+        </div>
+        <div class="readout__caption" id="age-caption">just synced</div>
+      </div>
+      <div class="readout">
+        <div class="readout__label tip-underline" tabindex="0" data-tooltip="How far off our position estimate could be, given the clock offset that's accumulated since the last sync. Computed as σ · τ · c using the picked oscillator's fractional frequency stability (true Allan deviation for the lab/atomic line; long-term observed offset for everyday clocks). 1 µs of clock error ≈ 300 m of positioning error.">Position uncertainty</div>
+        <div>
+          <span class="readout__val" id="unc-val">~0000.0</span>
+          <span class="readout__unit" id="unc-unit">km</span>
+        </div>
+        <div class="readout__caption" id="unc-caption">σ &middot; τ &middot; c since last sync</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button
+        class="ping-btn"
+        id="ping-btn"
+        type="button"
+        data-tooltip="Simulate a real ranging/sync query from the lunar reference clock back to Earth. Out-pulse takes ~1.282 s to reach Earth, return-pulse takes ~1.282 s to come back — round-trip ~2.564 s. The completed sync still carries one one-way light-time of unavoidable staleness."
+      >Ping earth</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="controls__title">
+      Design-review controls (removed in assembled panel)
+      <span class="tip-icon" tabindex="0" data-tooltip="Demo drift uses Δt(τ) ≈ σ · τ, where σ is the picked oscillator's fractional frequency stability (true short-term Allan deviation for the lab/atomic line; long-term observed offset for everyday clocks). Pick an oscillator and a time multiplier — at 1× real-time the high-stability clocks barely move; crank the multiplier to compress hours of drift into seconds of demo.">i</span>
+    </div>
+
+    <label>
+      <span class="label-row">
+        Oscillator class
+        <span class="tip-icon" tabindex="0" data-tooltip="σ is fractional frequency stability — Δt(τ) ≈ σ · τ.&#10;&#10;Lab / atomic (true short-term Allan deviation):&#10;  H-maser              ~1×10⁻¹⁵&#10;  Cs beam              ~1×10⁻¹³&#10;  Rb standard          ~1×10⁻¹²&#10;  OCXO                 ~1×10⁻¹¹&#10;  Rb CSAC              ~3×10⁻¹⁰&#10;  TCXO                 ~1×10⁻⁹&#10;&#10;Everyday & historical (long-term observed offset):&#10;  Apollo AGC           ~2.6×10⁻⁷  (0.26 ppm, Apollo 8 measured)&#10;  iPhone cellular TCXO ~2.5×10⁻⁶  (2.5 ppm spec)&#10;  Big Ben              ~3.3×10⁻⁶  (2 s/week)&#10;  Quartz wristwatch    ~6×10⁻⁶    (15 s/month)&#10;  Omega Speedmaster    ~5.8×10⁻⁵  (5 s/day, NASA-tested)&#10;  Microwave RC clock   ~1.4×10⁻³  (2 min/day)">i</span>
+      </span>
+      <select id="osc-input">
+        <optgroup label="Lab / atomic (short-term ADEV)">
+          <option value="1e-15">H-maser &mdash; σ ≈ 1×10⁻¹⁵</option>
+          <option value="1e-13">Cs beam &mdash; σ ≈ 1×10⁻¹³</option>
+          <option value="1e-12">Rb standard &mdash; σ ≈ 1×10⁻¹²</option>
+          <option value="1e-11">OCXO &mdash; σ ≈ 1×10⁻¹¹</option>
+          <option value="3e-10" selected>Rb CSAC &mdash; σ ≈ 3×10⁻¹⁰</option>
+          <option value="1e-9">TCXO &mdash; σ ≈ 1×10⁻⁹</option>
+        </optgroup>
+        <optgroup label="Everyday &amp; historical (observed offset)">
+          <option value="2.6e-7">Apollo Guidance Computer &mdash; σ ≈ 2.6×10⁻⁷</option>
+          <option value="2.5e-6">iPhone cellular TCXO &mdash; σ ≈ 2.5×10⁻⁶</option>
+          <option value="3.3e-6">Big Ben &mdash; σ ≈ 3.3×10⁻⁶</option>
+          <option value="6e-6">Quartz wristwatch &mdash; σ ≈ 6×10⁻⁶</option>
+          <option value="5.8e-5">Omega Speedmaster &mdash; σ ≈ 5.8×10⁻⁵</option>
+          <option value="1.4e-3">Microwave oven clock &mdash; σ ≈ 1.4×10⁻³</option>
+        </optgroup>
+      </select>
+    </label>
+    <span class="controls__readout" id="osc-readout">σ = 3.0×10⁻¹⁰</span>
+
+    <label>
+      <span class="label-row">
+        Demo time scale
+        <span class="tip-icon" tabindex="0" data-tooltip="Multiplier on real elapsed time so high-stability clocks still produce visible drift inside a short demo window. At 1× you see real-time stability. At 10000× a CSAC drifts a visible micro­second per second of wall time. Round-trip ping animation always plays at real-time (2.564 s).">i</span>
+      </span>
+      <input type="range" id="speed-input" min="0" max="100" value="0" />
+    </label>
+    <span class="controls__readout" id="speed-readout">1× real-time</span>
+  </div>
+
+  <script>
+    // Physical constants
+    const EARTH_MOON_KM = 384400;        // mean Earth-Moon range (km)
+    const C_KM_PER_S = 299792.458;       // speed of light (km/s)
+    const C_M_PER_US = 299.792458;       // speed of light (m / microsecond)
+    const LIGHT_TIME_S = EARTH_MOON_KM / C_KM_PER_S; // ~1.2820 s one-way
+    const RTT_S = LIGHT_TIME_S * 2;      // ~2.5640 s round-trip
+
+    // DOM
+    const stateLabel = document.getElementById("state-label");
+    const ageEl = document.getElementById("age-val");
+    const ageCaption = document.getElementById("age-caption");
+    const uncEl = document.getElementById("unc-val");
+    const uncUnit = document.getElementById("unc-unit");
+    const uncCaption = document.getElementById("unc-caption");
+    const pingBtn = document.getElementById("ping-btn");
+    const oscInput = document.getElementById("osc-input");
+    const oscReadout = document.getElementById("osc-readout");
+    const speedInput = document.getElementById("speed-input");
+    const speedReadout = document.getElementById("speed-readout");
+    const pulse = document.getElementById("pulse");
+    // <spinning-earth> and <lunar-phase> own their own glyph state — see
+    // ./lib/celestial-emoji.js. We only need a handle on the earth element to
+    // toggle the .is-hit apex-flash class during the ping animation.
+    const earthBody = document.getElementById("earth-body");
+
+    // State
+    //   sigmaY:   fractional frequency stability for current osc class.
+    //   speedX:   demo time multiplier — simulated_seconds = real_seconds × speedX.
+    //   lastSyncMs: wall time of the last successful sync (real ms).
+    let sigmaY = Number(oscInput.value);
+    let speedX = sliderToSpeed(Number(speedInput.value));
+    let lastSyncMs = performance.now();
+    let pingActiveAt = 0;
+    let earthHitFlashUntil = 0;
+
+    // Speed slider maps log-scale across 1× .. 1,000,000×.
+    function sliderToSpeed(v) {
+      const SPEED_MIN = 1;
+      const SPEED_MAX = 1_000_000;
+      const t = v / 100;
+      const speed = SPEED_MIN * Math.pow(SPEED_MAX / SPEED_MIN, t);
+      // Snap to a 1/2/5 sequence so the readout is legible
+      const exp = Math.floor(Math.log10(speed));
+      const base = Math.pow(10, exp);
+      const mantissa = speed / base;
+      const snapped = mantissa < 1.5 ? 1 : mantissa < 3.5 ? 2 : mantissa < 7.5 ? 5 : 10;
+      return snapped * base;
+    }
+
+    function fmtAge(ms) {
+      const total = Math.max(0, ms / 1000);
+      const m = Math.floor(total / 60);
+      const s = total - m * 60;
+      return String(m).padStart(2, "0") + ":" + s.toFixed(2).padStart(5, "0");
+    }
+    function fmtSigma(sy) {
+      const exp = Math.floor(Math.log10(sy));
+      const mantissa = sy / Math.pow(10, exp);
+      const supers = { "-": "⁻", "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹" };
+      const expStr = String(exp).split("").map(c => supers[c] ?? c).join("");
+      return `σ = ${mantissa.toFixed(1)}×10${expStr}`;
+    }
+    function fmtSpeed(x) {
+      if (x >= 1000) return `${(x / 1000).toLocaleString()}k× real-time`;
+      return `${x.toLocaleString()}× real-time`;
+    }
+    function fmtUnc(km) {
+      // Spans mm → cm → m → km. Capped at km — the integer part just keeps
+      // growing past 4 digits when uncertainty exceeds Earth–Moon scale.
+      let value, unit;
+      if (km >= 1)         { value = km;       unit = "km"; }
+      else if (km >= 1e-3) { value = km * 1e3; unit = "m"; }
+      else if (km >= 1e-5) { value = km * 1e5; unit = "cm"; }
+      else                 { value = km * 1e6; unit = "mm"; }
+
+      // Aim for a 5–6 character readout; let large km grow naturally.
+      let str;
+      if (value >= 10000)     str = value.toFixed(0);
+      else if (value >= 1000) str = value.toFixed(1);
+      else if (value >= 100)  str = value.toFixed(2);
+      else if (value >= 10)   str = value.toFixed(3);
+      else                    str = value.toFixed(4);
+
+      return { val: "~" + str, unit };
+    }
+    function fmtDriftCaption(offsetUs) {
+      const abs = Math.abs(offsetUs);
+      let val, unit;
+      if (abs >= 1e9) { val = (offsetUs / 1e6).toFixed(1); unit = "s"; }
+      else if (abs >= 1e6) { val = (offsetUs / 1e3).toFixed(1); unit = "ms"; }
+      else if (abs >= 1) { val = offsetUs.toFixed(1); unit = "\u00b5s"; }
+      else if (abs >= 1e-3) { val = (offsetUs * 1e3).toFixed(1); unit = "ns"; }
+      else { val = (offsetUs * 1e6).toFixed(1); unit = "ps"; }
+      return `${val} ${unit} clock drift \u00d7 c`;
+    }
+
+    function updateOscUI() {
+      sigmaY = Number(oscInput.value);
+      oscReadout.textContent = fmtSigma(sigmaY);
+    }
+    function updateSpeedUI() {
+      speedX = sliderToSpeed(Number(speedInput.value));
+      speedReadout.textContent = fmtSpeed(speedX);
+    }
+    oscInput.addEventListener("change", updateOscUI);
+    speedInput.addEventListener("input", updateSpeedUI);
+
+    function setState(name) {
+      stateLabel.textContent = name;
+      stateLabel.classList.toggle("is-pinging", name === "PING IN FLIGHT");
+      stateLabel.classList.toggle("is-synced", name === "SYNC");
+    }
+
+    pingBtn.addEventListener("click", () => {
+      if (pingActiveAt) return;
+      pingActiveAt = performance.now();
+      pingBtn.disabled = true;
+      pulse.classList.add("is-active");
+      setState("PING IN FLIGHT");
+    });
+
+    function frame(now) {
+      // Drive the in-flight ping animation (always real-time).
+      // Pulse starts at the Moon (right edge), travels to Earth at the apex,
+      // then returns to the Moon.
+      if (pingActiveAt) {
+        const elapsed = (now - pingActiveAt) / 1000;
+        const t = elapsed / RTT_S;
+        const u = t < 0.5 ? t * 2 : (1 - t) * 2; // 0..1..0
+        const strip = pulse.parentElement;
+        const remPx = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        const inset = remPx;
+        const stripW = strip.clientWidth - inset * 2;
+        // (1 - u) so u=0 is Moon (right) and u=1 is Earth (left).
+        pulse.style.left = `${inset + (1 - u) * stripW}px`;
+        if (Math.abs(elapsed - LIGHT_TIME_S) < 0.08) {
+          earthBody.classList.add("is-hit");
+          earthHitFlashUntil = now + 220;
+        }
+        if (elapsed >= RTT_S) {
+          // Sync completes. Knowledge is one-way light-time stale at receipt.
+          // We model this by setting lastSyncMs to a wall time LIGHT_TIME_S in the past,
+          // adjusted by the demo time multiplier so the staleness reads correctly in
+          // simulated time as well.
+          lastSyncMs = now - (LIGHT_TIME_S * 1000) / Math.max(speedX, 1);
+          pingActiveAt = 0;
+          pingBtn.disabled = false;
+          pulse.classList.remove("is-active");
+          setState("SYNC");
+          setTimeout(() => { if (!pingActiveAt) setState("LOCKED"); }, 700);
+        }
+      }
+      if (now > earthHitFlashUntil) earthBody.classList.remove("is-hit");
+
+      // Continuous uncertainty growth since last sync. Δt(τ) ≈ σ · τ,
+      // where σ is the picked oscillator's fractional frequency stability and
+      // τ is in simulated seconds (= real seconds × speedX).
+      const realAgeMs = now - lastSyncMs;
+      const simAgeSec = (realAgeMs / 1000) * speedX;
+      const offsetSec = sigmaY * simAgeSec;
+      const offsetUs = offsetSec * 1e6;
+      const uncertaintyKm = (offsetUs * C_M_PER_US) / 1000;
+
+      ageEl.textContent = fmtAge(realAgeMs);
+      ageCaption.textContent = pingActiveAt
+        ? `ping in flight: ${((now - pingActiveAt) / 1000).toFixed(2)} / 2.56 s`
+        : (realAgeMs < 250 ? "just synced" : `growing at ${fmtSpeed(speedX)}`);
+
+      const { val, unit } = fmtUnc(uncertaintyKm);
+      uncEl.textContent = val;
+      uncUnit.textContent = unit;
+      uncEl.classList.toggle("is-warn", !!pingActiveAt);
+      uncCaption.textContent = pingActiveAt
+        ? "answer in flight \u2014 don't trust readout yet"
+        : fmtDriftCaption(offsetUs);
+
+      requestAnimationFrame(frame);
+    }
+
+    updateOscUI();
+    updateSpeedUI();
+    setState("LOCKED");
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

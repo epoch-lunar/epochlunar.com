@@ -1,0 +1,48 @@
+name: Deploy to GitHub Pages
+
+# Publishes frontend/ to GitHub Pages.
+#
+# The site lives in a subdirectory, and Pages' built-in "deploy from branch"
+# only supports the repo root or /docs — hence this workflow rather than a
+# branch setting. Repo Settings → Pages → Source must be set to "GitHub Actions".
+#
+# Static files only: no build step, no dependencies, no toolchain.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-pages.yml"
+  workflow_dispatch:
+
+# Allow one concurrent deployment; don't cancel a run that is mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload frontend/
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
