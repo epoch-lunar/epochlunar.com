@@ -284,15 +284,27 @@ Then open `http://localhost:8080`. Serve over HTTP rather than opening `file://`
 
 ## Deploying
 
-Cloudflare Pages, wired to this repo through the Cloudflare dashboard:
+GitHub Pages, published by `.github/workflows/deploy-pages.yml` on every push to `main` that touches `frontend/`.
 
-| Setting | Value |
-|---------|-------|
-| Build command | *(none)* |
-| Build output directory | `frontend` |
-| Root directory | *(repo root)* |
+The site lives in a subdirectory, and Pages' built-in "deploy from branch" only supports the repo root or `/docs` — hence the workflow, which uploads `frontend/` as the Pages artifact.
 
-There is no deploy config in the repo — it lives in the Pages project settings, so this table is the record of it. Pushing to `main` publishes.
+**Repo settings → Pages → Source must be set to "GitHub Actions".** Without it the workflow runs and then fails at the deploy step.
+
+### Custom domain
+
+`frontend/CNAME` claims `epochlunar.com`. DNS must point at GitHub:
+
+| Type | Name | Value |
+|------|------|-------|
+| A | `@` | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+| CNAME | `www` | `epoch-lunar.github.io` |
+
+If DNS stays on Cloudflare, set these records to **DNS only** (grey cloud, not proxied). GitHub cannot complete its ACME challenge through Cloudflare's proxy, so "Enforce HTTPS" will stay greyed out until the cert issues.
+
+`frontend/.nojekyll` disables Jekyll processing. Without it Pages silently drops any path beginning with an underscore.
 
 ### History
 
